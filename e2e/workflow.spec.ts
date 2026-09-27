@@ -15,14 +15,14 @@ test('manual problem-to-decision flow survives reload', async ({ page }) => {
   await page.getByRole('button', { name: /Continue/ }).click();
   await expect(page.getByText(/all criteria are unknown/).first()).toBeVisible();
   await page.getByRole('button', { name: /Continue/ }).click();
-  await page.getByLabel('Selected direction').selectOption('a');
+  await page.getByLabel('Selected direction').selectOption({ label: 'Pickup coordination' });
   await page.getByRole('button', { name: 'Try this direction' }).click();
   await expect(page.getByText('This illustrates a decision path; it does not validate feasibility or impact.')).toBeVisible();
   await page.getByLabel('Why choose this direction?').fill('It can use volunteers already present');
   await page.reload();
-  await page.getByRole('navigation', { name: 'Problem-solving stages' }).getByRole('button', { name: /Prototype & decision/ }).click({ force: true });
+  await page.getByRole('navigation', { name: 'Problem-solving stages' }).getByRole('button', { name: /Prototype & decision/ }).click();
   await expect(page.getByLabel('Why choose this direction?')).toHaveValue('It can use volunteers already present');
-  await expect(page.getByText('Pickup coordination').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pickup coordination' })).toBeVisible();
 });
 
 for (const width of [360, 375, 390, 412]) {
