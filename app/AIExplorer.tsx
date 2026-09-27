@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { blankOption, type Workspace } from '../lib/decision';
 import { parseExploration, parsePrototype, type Exploration, type GeneratedPrototype } from '../lib/ai';
@@ -18,10 +18,15 @@ export function Explore({ workspace, setWorkspace }: { workspace: Workspace; set
   const [result, setResult] = useState<Exploration | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const current = useRef(JSON.stringify(workspace));
+  current.current = JSON.stringify(workspace);
+  useEffect(() => { setResult(null); }, [workspace]);
   async function explore() {
+    const snapshot = current.current;
     setBusy(true); setError('');
     try {
       const payload = await requestAI('explore', workspace);
+      if (snapshot !== current.current) throw new Error('Your notes changed while exploring. Generate again to use the latest version.');
       if (!payload || typeof payload !== 'object' || !('exploration' in payload)) throw new Error('Invalid result');
       setResult(parseExploration(payload.exploration));
     } catch (e) { setError(e instanceof Error ? e.message : 'Exploration failed.'); }
@@ -41,15 +46,19 @@ export function PrototypeExplorer({ workspace }: { workspace: Workspace }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [screen, setScreen] = useState(0);
-  const [input, setInput] = useState('');
+  const current = useRef(JSON.stringify(workspace));
+  current.current = JSON.stringify(workspace);
+  useEffect(() => { setResult(null); setScreen(0); }, [workspace]);
   async function generate() {
+    const snapshot = current.current;
     setBusy(true); setError(''); setResult(null); setScreen(0);
     try {
       const payload = await requestAI('prototype', workspace);
+      if (snapshot !== current.current) throw new Error('Your decision changed while generating. Generate again using the latest version.');
       if (!payload || typeof payload !== 'object' || !('prototype' in payload)) throw new Error('Invalid result');
       setResult(parsePrototype(payload.prototype));
     } catch (e) { setError(e instanceof Error ? e.message : 'Prototype generation failed.'); }
     finally { setBusy(false); }
   }
-  return <aside className="aiPanel" aria-label="Optional AI prototype"><h3>Prototype outline <span className="badge">PROPOSED</span></h3><p>A generated screen-by-screen interaction outline, not executable code or a deployed product. Your input is processed by your configured AI provider.</p><button className="secondary" type="button" disabled={busy || !workspace.selectedId} onClick={generate}>{busy ? 'Generating…' : 'Generate prototype outline'}</button>{error && <p role="alert" className="notice">{error}</p>}{result && <div><h4>{result.name}</h4><p>{result.purpose}</p><p>Step {screen + 1} of {result.screens.length}</p><section className="prototype" aria-live="polite"><h4>{result.screens[screen].title}</h4><p>{result.screens[screen].purpose}</p><p><strong>Interaction:</strong> {result.screens[screen].interaction}</p><label className="selectLabel" htmlFor="prototype-input">Try an example input</label><input id="prototype-input" value={input} onChange={e => setInput(e.target.value)} maxLength={300} placeholder="Your example input"/><p className="hint">This outline does not process or validate the example input.</p><div className="actions"><button className="secondary" type="button" disabled={screen === 0} onClick={() => setScreen(s => s - 1)}>Previous</button><button className="primary" type="button" disabled={screen === result.screens.length - 1} onClick={() => setScreen(s => s + 1)}>Next screen</button></div></section><p><strong>Required data:</strong> {result.requiredData.join('; ') || 'Not specified'}</p><p><strong>Limitations:</strong> {result.limitations.join('; ') || 'Not specified'}</p></div>}</aside>;
+  return <aside className="aiPanel" aria-label="Optional AI prototype"><h3>Prototype outline <span className="badge">PROPOSED</span></h3><p>A generated screen-by-screen interaction outline, not executable code or a deployed product. Your input is processed by your configured AI provider.</p><button className="secondary" type="button" disabled={busy || !workspace.selectedId} onClick={generate}>{busy ? 'Generating…' : 'Generate prototype outline'}</button>{error && <p role="alert" className="notice">{error}</p>}{result && <div><h4>{result.name}</h4><p>{result.purpose}</p><p>Step {screen + 1} of {result.screens.length}</p><section className="prototype" aria-live="polite"><h4>{result.screens[screen].title}</h4><p>{result.screens[screen].purpose}</p><p><strong>Proposed interaction:</strong> {result.screens[screen].interaction}</p><div className="actions"><button className="secondary" type="button" disabled={screen === 0} onClick={() => setScreen(s => s - 1)}>Previous</button><button className="primary" type="button" disabled={screen === result.screens.length - 1} onClick={() => setScreen(s => s + 1)}>Next screen</button></div></section><p><strong>Required data:</strong> {result.requiredData.join('; ') || 'Not specified'}</p><p><strong>Limitations:</strong> {result.limitations.join('; ') || 'Not specified'}</p></div>}</aside>;
 }
