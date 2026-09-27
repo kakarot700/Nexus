@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import DraftTools from './DraftTools';
 import './globals.css';
+import './draft.css';
 
 export const metadata: Metadata = {
   title: 'NEXUS — Work through a problem',
