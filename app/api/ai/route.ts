@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { parseExploration, parsePrototype, validInput } from '../../../lib/ai';
 import { ChatCompletionsProvider } from '../../../lib/provider';
+import { readLimited } from '../../../lib/read-limited';
 
 export const runtime = 'nodejs';
 const provider = new ChatCompletionsProvider();
@@ -8,8 +9,8 @@ const rules = 'You support structured problem solving. Return one JSON object on
 export async function POST(request: Request) {
   if (!process.env.NEXUS_AI_KEY || !process.env.NEXUS_AI_URL || !process.env.NEXUS_AI_MODEL) return NextResponse.json({ error: 'AI is not configured; continue manually.' }, { status: 503 });
   let input: unknown;
-  try { if (Number(request.headers.get('content-length') || 0) > 20000) return NextResponse.json({ error: 'Input too large.' }, { status: 413 }); input = await request.json(); }
-  catch { return NextResponse.json({ error: 'Invalid JSON input.' }, { status: 400 }); }
+  try { input = JSON.parse(await readLimited(request.body, 20000)); }
+  catch { return NextResponse.json({ error: 'Invalid or oversized JSON input.' }, { status: 400 }); }
   if (!validInput(input)) return NextResponse.json({ error: 'Add a problem and keep input within limits.' }, { status: 400 });
   const { action, workspace } = input;
   if (action === 'prototype' && !workspace.options.some(o => o.id === workspace.selectedId && o.title.trim())) return NextResponse.json({ error: 'Select a direction first.' }, { status: 400 });
