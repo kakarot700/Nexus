@@ -17,6 +17,16 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - name: Browser tests
+        run: |
+          set -o pipefail
+          npm run test:e2e 2>&1 | tee e2e.log
         env:
           CI: 'true'
+      - name: Annotate browser failure
+        if: failure()
+        run: |
+          if [ -f e2e.log ]; then
+            message=$(tail -n 65 e2e.log | tr '\n' ' ' | cut -c1-3500)
+            echo "::error title=Browser test failure::$message"
+          fi
