@@ -16,5 +16,6 @@ export function evaluate(option: Option): string {
 export function isWorkspace(value: unknown): value is Workspace {
   if (!value || typeof value !== 'object') return false;
   const v = value as Partial<Workspace>;
-  return ['problem', 'stakeholders', 'goal', 'evidence', 'constraints', 'unknowns', 'selectedId', 'decisionReason'].every(key => typeof v[key as keyof Workspace] === 'string') && Array.isArray(v.options) && v.options.length <= 12 && v.options.every(o => o && typeof o.id === 'string' && typeof o.title === 'string' && typeof o.mechanism === 'string' && o.ratings && criteria.every(k => ratings.includes(o.ratings[k])));
+  const bounded = (x: unknown, max: number) => typeof x === 'string' && x.length <= max;
+  return ['problem', 'stakeholders', 'goal', 'evidence', 'constraints', 'unknowns', 'selectedId', 'decisionReason'].every(key => bounded(v[key as keyof Workspace], 3000)) && Array.isArray(v.options) && v.options.length >= 2 && v.options.length <= 6 && v.options.every(o => o && bounded(o.id, 160) && bounded(o.title, 160) && bounded(o.mechanism, 3000) && o.ratings && criteria.every(k => ratings.includes(o.ratings[k]))) && (!v.selectedId || v.options.some(o => o.id === v.selectedId));
 }
