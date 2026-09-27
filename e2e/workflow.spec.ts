@@ -38,6 +38,6 @@ test('AI failure preserves manual flow without provider configuration', async ({
   await page.getByLabel('What problem are you trying to solve?').fill('Improve access to public services');
   await page.getByRole('navigation', { name: 'Problem-solving stages' }).getByRole('button', { name: /Solutions/ }).click();
   await page.getByRole('button', { name: 'Generate approaches' }).click();
-  await expect(page.getByRole('alert')).toContainText('AI is not configured');
+  await expect(page.locator('.aiPanel [role="alert"]')).toContainText('AI is not configured');
   await expect(page.getByLabel('Strategy')).toHaveCount(2);
 });
