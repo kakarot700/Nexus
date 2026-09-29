@@ -14,7 +14,7 @@ type ProblemAnalysis = {
     id: string;
     category: string;
     description: string;
-    source: "USER_PROVIDED" | "DERIVED" | "ASSUMED";
+    source: "USER_PROVIDED" | "DERIVED";
   }>;
   unknowns: string[];
   assumptions: string[];
@@ -38,6 +38,8 @@ type Evaluation = {
     criterion: string;
     status: "PASS" | "PARTIAL" | "FAIL" | "UNKNOWN";
     explanation: string;
+    evidenceIds: string[];
+    constraintIds: string[];
   }>;
   strengths: string[];
   weaknesses: string[];
@@ -46,7 +48,13 @@ type Evaluation = {
 };
 
 type DecisionTrail = {
-  steps: Array<{ stage: string; decision: string; evidence: string[]; uncertainty?: string }>;
+  steps: Array<{
+    stage: string;
+    decision: string;
+    evidenceIds: string[];
+    constraintIds: string[];
+    uncertainty?: string;
+  }>;
 };
 
 type Prototype = {
@@ -58,3 +66,15 @@ type Prototype = {
 ```
 
 Boundary: parse → validate → normalize → sanity-check → render.
+
+References in `evidenceIds` and `constraintIds` must identify existing objects in the
+current analysis; never invent IDs. Use empty arrays when no source supports a claim,
+and represent the resulting uncertainty in the status and explanation.
+
+## Open domain decision
+
+ADR-003 names `Decision` as a domain object, but no serialized `Decision` schema is
+specified here. **TODO/question for the product owner:** should a `Decision` represent
+the user's selected direction, a system recommendation, or both, and what fields must
+distinguish those cases? Resolve this before defining or persisting a `Decision`; do
+not infer its shape from `DecisionTrail`.

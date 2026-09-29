@@ -11,4 +11,6 @@ Never silently upgrade:
 UNVERIFIED → FACT
 PROPOSED → FACT
 
-Important decisions should reference the evidence and constraints that produced them.
+Important decisions should reference the evidence and constraints that produced them
+using IDs that resolve to existing source objects. Never invent references; when no
+supporting object exists, expose the uncertainty instead.

@@ -10,7 +10,7 @@ Extract explicit and reasonably derivable constraints. Never manufacture numeric
 Generate genuinely different strategies, not rewordings. Respect constraints. State assumptions, benefits, risks, and resources.
 
 ## Critic
-Attempt to falsify each solution. Identify exact assumptions or constraints involved. Do not silently redesign the solution.
+Attempt to falsify each solution. Identify exact assumptions or constraints involved. Reference supplied evidence or constraint IDs where relevant; never invent IDs. Do not silently redesign the solution.
 
 ## Explanation
-Explain conclusions using validated evidence, constraints, and evaluation results. Never claim unsupported knowledge.
+Explain conclusions using validated evidence, constraints, and evaluation results. Reference existing evidence and constraint IDs where relevant. Never invent IDs or claim unsupported knowledge.
