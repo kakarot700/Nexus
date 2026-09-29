@@ -9,3 +9,8 @@ playwright-report/
 test-results/
 .test-dist/
 tsconfig.tsbuildinfo
+.vercel/
+.wrangler/
+.dev.vars
+.dev.vars.*
+screenshots/

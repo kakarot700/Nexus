@@ -1,25 +1,23 @@
 # Implementation assumptions
 
-This runnable version uses only the requirements in the context pack. It does not claim to provide a live AI provider, external research, or domain-specific expertise.
+This implementation follows the current context pack. It does not claim external research, expert validation, model capability, facts not present in user input, or any event/hackathon rule.
 
-## Decision semantics
+## Source and analysis
 
-A `Decision` is the direction the user explicitly selects. A system recommendation is kept separate as an evaluation summary; it never silently selects a direction. The selected direction records the user's rationale and only the evidence and constraints the user chose to cite. This is a local, in-memory working record, not a persisted or submitted decision.
+The user's original statement is preserved verbatim. Exact optional field lines create source objects. Local categories use visible deterministic keyword rules; the category is `DERIVED` (and `OTHER` is `UNVERIFIED`) independently from the supplied text. Local mapping does not infer unprovided facts. Optional server model output is normalized and source-checked; ungrounded claims stay `PROPOSED`/`UNVERIFIED` or are dropped.
 
-## Overall recommendation
+## Solution and critic
 
-Assessments are qualitative and are entered by the user; all criteria begin as `UNKNOWN`. The rule is:
+The deterministic demo includes five generic, structurally different strategies: software, human + software, infrastructure, behavioral, and hybrid. They are starting proposals, not AI-generated, validated, or domain-specific answers. Each has explicit resources, risks, assumptions, and a proposal/limitation for supplied constraints. The critic challenges the proposal; findings are checks/unknowns, not confirmed defects.
 
-- `INCOMPATIBLE` if any criterion is `FAIL`.
-- `PROMISING` only if all six criteria are `PASS`.
-- `NEEDS_WORK` for every other combination, including any `PARTIAL` or `UNKNOWN`.
+## Evaluation
 
-No weights, scores, or implied probabilities are used. This conservative rule makes uncertainty visible and does not treat missing evidence as success.
+Assessments are qualitative, user-entered, and begin `UNKNOWN`; each criterion includes a reason and optional source IDs. The aggregate rule is: any `FAIL` → `INCOMPATIBLE`; all six `PASS` → `PROMISING`; otherwise `NEEDS_WORK`. No weights, numerical scores, or probability are used. This recommendation is separate from a `USER_SELECTED` direction and does not choose for the user.
 
-## Local guided mode
+## Prototype, decision and persistence
 
-The workspace maps only text the user supplied. Its three strategy patterns are generic, distinct starting proposals (`PROPOSED`), not AI-generated or validated answers. The user supplies stakeholder names, goals, constraints, explanations, assessments, and source links. Missing information stays unresolved and is labeled as needing verification. The prototype demonstrates one local note-taking interaction; it does not contact people, persist data, or establish that a proposed approach works.
+The prototype demonstrates a local interaction selected by the chosen strategy (note-taking, intake, access-location, reminder, or offline-pack sketch). It is not a working external service; user notes are cleared on refresh. Decisions and citations remain in page memory only and are not persisted or submitted.
 
-## Runtime choices
+## Provider and runtime
 
-Next.js, React, and TypeScript follow the accepted stack decision. The app is statically exportable, needs no account, server, database, API key, or external integration, and uses built-in Node test tooling to avoid an unnecessary test-framework dependency. No external decorative images were added because the design system calls for a structured, editorial instrument and rules out decorative imagery.
+Deterministic demo mode is default and visibly named. An optional server-only OpenAI adapter handles only analysis and solution generation when `NEXUS_AI_PROVIDER`, `OPENAI_API_KEY`, and `OPENAI_MODEL` are all configured. JSON mode does not guarantee schema conformity; validation, sanitization, bounded failure handling, and visible per-stage fallback are always applied. The critic, evaluation, decision, and prototype remain deterministic/user-controlled.

@@ -1,80 +1,32 @@
-# NEXUS AI SCHEMAS
+# NEXUS AI AND DOMAIN SCHEMAS
 
-Use runtime validation. AI output is untrusted.
+All external model output is untrusted. Apply `parse → validate → normalize → sanity-check → render` on the server before it reaches the UI.
+
+## Provenance
 
 ```ts
 type EvidenceStatus = "USER_PROVIDED" | "DERIVED" | "PROPOSED" | "UNVERIFIED";
-
-type ProblemAnalysis = {
-  problem: { statement: string; context: string };
-  stakeholders: Array<{ id: string; name: string; role: string; needs: string[] }>;
-  goals: string[];
-  evidence: Array<{ id: string; text: string; status: EvidenceStatus }>;
-  constraints: Array<{
-    id: string;
-    category: string;
-    description: string;
-    source: "USER_PROVIDED" | "DERIVED";
-  }>;
-  unknowns: string[];
-  assumptions: string[];
-};
-
-type Solution = {
-  id: string;
-  name: string;
-  strategyType: "SOFTWARE" | "HUMAN_SOFTWARE" | "INFRASTRUCTURE" | "BEHAVIORAL" | "HYBRID";
-  summary: string;
-  mechanism: string[];
-  requiredResources: string[];
-  benefits: string[];
-  risks: string[];
-  assumptions: string[];
-};
-
-type Evaluation = {
-  solutionId: string;
-  criteria: Array<{
-    criterion: string;
-    status: "PASS" | "PARTIAL" | "FAIL" | "UNKNOWN";
-    explanation: string;
-    evidenceIds: string[];
-    constraintIds: string[];
-  }>;
-  strengths: string[];
-  weaknesses: string[];
-  unknowns: string[];
-  recommendation: "PROMISING" | "NEEDS_WORK" | "INCOMPATIBLE";
-};
-
-type DecisionTrail = {
-  steps: Array<{
-    stage: string;
-    decision: string;
-    evidenceIds: string[];
-    constraintIds: string[];
-    uncertainty?: string;
-  }>;
-};
-
-type Prototype = {
-  name: string;
-  purpose: string;
-  screens: Array<{ id: string; title: string; purpose: string; interactions: string[] }>;
-  coreInteraction: string;
-};
+type StrategyType = "SOFTWARE" | "HUMAN_SOFTWARE" | "INFRASTRUCTURE" | "BEHAVIORAL" | "HYBRID";
 ```
 
-Boundary: parse → validate → normalize → sanity-check → render.
+`USER_PROVIDED` is reserved for text traceable to current user input. A `DERIVED` item must cite source evidence and remains an inference. `PROPOSED` stays a suggestion; `UNVERIFIED` remains unresolved. The normalized domain retains `sourceField` and `sourceQuote` when available, and IDs must resolve to existing objects.
 
-References in `evidenceIds` and `constraintIds` must identify existing objects in the
-current analysis; never invent IDs. Use empty arrays when no source supports a claim,
-and represent the resulting uncertainty in the status and explanation.
+## Problem
 
-## Open domain decision
+`ProblemInput` accepts a required problem statement plus optional newline-delimited stakeholder names, goals, and constraints. The API bounds request size and line lengths.
 
-ADR-003 names `Decision` as a domain object, but no serialized `Decision` schema is
-specified here. **TODO/question for the product owner:** should a `Decision` represent
-the user's selected direction, a system recommendation, or both, and what fields must
-distinguish those cases? Resolve this before defining or persisting a `Decision`; do
-not infer its shape from `DecisionTrail`.
+`Problem` contains `{ problem: { statement, context }, stakeholders, goals, evidence, constraints, unknowns, assumptions }`. Stakeholders preserve the provenance of their name, role, and needs separately. Constraints preserve text source/status, categorical label, category status, and evidence references. The original problem statement is never replaced by model paraphrase. Unsupported context/claims are dropped or demoted rather than promoted to user fact.
+
+## Solution
+
+Each `Solution` contains `id`, `name`, unique `strategyType`, `summary`, `mechanism`, `requiredResources`, `benefits`, `risks`, `assumptions`, valid `evidenceIds`/`constraintIds`, and `constraintResponses` with a proposed response and limitation. A response needs 3–5 items using distinct strategy types. Missing constraint responses are rendered as unresolved; unresolved references are removed. No model evaluation score is accepted.
+
+## Evaluation and decision
+
+`Evaluation` has one qualitative `CriterionAssessment` per declared criterion: `status`, `explanation`, `evidenceIds`, and `constraintIds`. No numeric score is used. The deterministic aggregate rule is in [EVALUATION_ENGINE.md](EVALUATION_ENGINE.md).
+
+`Decision` means only a direction the user explicitly selected. `selectionKind` must be `USER_SELECTED`; user rationale and only chosen source references are stored in page memory. This is not a system recommendation, external submission, or persisted record.
+
+## Critic, graph and prototype
+
+`SolutionCritique` contains typed challenge findings and valid source references. Critic suggestions are `PROPOSED` or `DERIVED`, never automatically factual. `DecisionTrailStep` resolves the evidence and constraint IDs back to their actual descriptions and displays residual uncertainty. The rendered prototype is a trusted, statically implemented interaction profile, not executable model-generated code.

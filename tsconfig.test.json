@@ -10,5 +10,5 @@
     "outDir": ".test-dist",
     "types": ["node"]
   },
-  "include": ["lib/**/*.ts", "tests/**/*.ts"]
+  "include": ["app/api/**/*.ts", "lib/**/*.ts", "tests/**/*.ts"]
 }
